@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 type Product = {
@@ -19,6 +20,7 @@ function imageSrc(product: Product): string | null {
   const raw = product.imageUrl || product.image;
   if (!raw || typeof raw !== "string") return null;
   if (/^https?:\/\//.test(raw)) return raw;
+  if (raw.startsWith("/images/products/")) return raw;
   // /images/foo.jpg is resolved against the API server that provides it.
   if (raw.startsWith("/")) return `${API_URL}${raw}`;
   return null;
@@ -93,10 +95,10 @@ export default function Home() {
           {state === "success" && products.length > 0 && <div className="product-grid">{products.map((product) => {
             const image = imageSrc(product);
             const numericPrice = Number(product.price);
-            return <article className="product-card" key={String(product.id)}><div className="product-image">{image ? (
+            return <Link className="product-card" href={`/products/${encodeURIComponent(String(product.id))}`} aria-label={`Xem chi tiết ${product.name}`} key={String(product.id)}><div className="product-image">{image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={image} alt={product.name} loading="lazy" onError={(event) => { event.currentTarget.hidden = true; event.currentTarget.parentElement?.classList.add("image-fallback"); }} />
-              ) : <span className="coffee-symbol" aria-hidden="true">☕</span>}</div><div className="product-details"><span className="product-overline">BREWLITE SELECTION</span><h3>{product.name}</h3><div className="product-bottom"><strong>{Number.isFinite(numericPrice) ? formatter.format(numericPrice) : "Liên hệ"}</strong><span className="product-label">Đang phục vụ</span></div></div></article>;
+              ) : <span className="coffee-symbol" aria-hidden="true">☕</span>}</div><div className="product-details"><span className="product-overline">BREWLITE SELECTION</span><h3>{product.name}</h3><div className="product-bottom"><strong>{Number.isFinite(numericPrice) ? formatter.format(numericPrice) : "Liên hệ"}</strong><span className="product-label">Xem chi tiết ↗</span></div></div></Link>;
           })}</div>}
         </section>
       </main>
