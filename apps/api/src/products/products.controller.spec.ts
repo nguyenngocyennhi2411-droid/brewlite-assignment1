@@ -1,5 +1,6 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 
@@ -30,5 +31,9 @@ describe('ProductsController', () => {
 
     expect(product).toBeDefined();
     expect(product.id).toBe(1);
+  });
+
+  it('should return 404 when a product does not exist', () => {
+    expect(() => controller.findOne(999)).toThrow(NotFoundException);
   });
 });

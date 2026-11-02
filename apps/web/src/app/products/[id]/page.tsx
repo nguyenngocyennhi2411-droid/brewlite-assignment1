@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SiteHeader } from "../../../components/site-header";
+import { useCart } from "../../../components/cart-provider";
+import { calculateUnitPrice, SIZE_OPTIONS, TOPPING_OPTIONS, type ProductSize } from "../../../lib/pricing";
 
 type Product = {
   id: number | string;
@@ -21,18 +24,6 @@ const formatter = new Intl.NumberFormat("vi-VN", {
   currency: "VND",
   maximumFractionDigits: 0,
 });
-
-const SIZE_OPTIONS = [
-  { name: "S", surcharge: 0 },
-  { name: "M", surcharge: 5000 },
-  { name: "L", surcharge: 10000 },
-] as const;
-
-const TOPPING_OPTIONS = [
-  { id: "pearls", name: "Trân châu", surcharge: 5000 },
-  { id: "cheese-foam", name: "Kem cheese", surcharge: 10000 },
-  { id: "espresso", name: "Shot espresso", surcharge: 8000 },
-] as const;
 
 function isProduct(payload: unknown): payload is Product {
   if (typeof payload !== "object" || payload === null) return false;
@@ -59,11 +50,12 @@ function imageSrc(product: Product): string | null {
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const { addItem, hydrated: cartHydrated } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [state, setState] = useState<LoadState>("loading");
   const [message, setMessage] = useState("");
   const [retry, setRetry] = useState(0);
-  const [size, setSize] = useState<(typeof SIZE_OPTIONS)[number]["name"]>("M");
+  const [size, setSize] = useState<ProductSize>("M");
   const [selectedToppings, setSelectedToppings] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -113,27 +105,14 @@ export default function ProductDetailPage() {
   }, [id, retry]);
 
   const selectedSize = SIZE_OPTIONS.find((option) => option.name === size);
-  const toppingsTotal = TOPPING_OPTIONS.reduce(
-    (total, topping) => total + (selectedToppings.has(topping.id) ? topping.surcharge : 0),
-    0,
-  );
   const basePrice = product ? Number(product.price) : 0;
-  const total = product ? basePrice + (selectedSize?.surcharge ?? 0) + toppingsTotal : 0;
+  const selectedToppingOptions = TOPPING_OPTIONS.filter((topping) => selectedToppings.has(topping.id));
+  const total = product ? calculateUnitPrice(basePrice, size, selectedToppingOptions) : 0;
   const image = product ? imageSrc(product) : null;
 
   return (
     <div className="site-shell">
-      <header className="header">
-        <Link href="/" className="brand" aria-label="BrewLite - trang chủ">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="BrewLite" width="166" height="45" />
-        </Link>
-        <nav className="nav" aria-label="Điều hướng chính">
-          <Link href="/#gioi-thieu">Giới thiệu</Link>
-          <Link href="/#menu">Menu</Link>
-        </nav>
-        <Link className="header-button" href="/#menu">← Quay lại menu</Link>
-      </header>
+      <SiteHeader />
 
       <main className="detail-main">
         <Link href="/#menu" className="detail-back">← Menu</Link>
@@ -238,6 +217,31 @@ export default function ProductDetailPage() {
                 <span>Tổng giá</span>
                 <strong>{formatter.format(total)}</strong>
               </div>
+              <button
+                className="detail-action add-to-cart"
+                type="button"
+                disabled={!cartHydrated}
+                onClick={() => {
+                  if (!product) return;
+                  addItem({
+                    productId: String(product.id),
+                    name: product.name,
+                    image,
+                    basePrice,
+                    size,
+                    sizeSurcharge: selectedSize?.surcharge ?? 0,
+                    toppings: selectedToppingOptions,
+                  });
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.9a2 2 0 0 0 1.9-1.4L22 8H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  <circle cx="10" cy="20" r="1" fill="currentColor" />
+                  <circle cx="18" cy="20" r="1" fill="currentColor" />
+                  <path d="M14 4v6m-3-3h6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                </svg>
+                <span>Thêm vào giỏ hàng</span>
+              </button>
             </div>
           </section>
         )}
