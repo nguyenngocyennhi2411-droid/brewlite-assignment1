@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { SiteHeader } from "../components/site-header";
 
 type Product = {
   id: string | number;
@@ -57,17 +58,7 @@ export default function Home() {
 
   return (
     <div className="site-shell">
-      <header className="header">
-        <a href="#top" className="brand" aria-label="BrewLite - đầu trang">
-          {/* Deliberate regular image: local SVG remains editable and does not need Next image optimization */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.svg" alt="BrewLite" width="166" height="45" />
-        </a>
-        <nav className="nav" aria-label="Điều hướng chính">
-          <a href="#gioi-thieu">Giới thiệu</a><a href="#menu">Menu</a>
-        </nav>
-        <a className="header-button" href="#menu">Xem menu <span aria-hidden="true">↗</span></a>
-      </header>
+      <SiteHeader home />
 
       <main id="top">
         <section className="hero" id="gioi-thieu">
