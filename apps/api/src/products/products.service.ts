@@ -7,19 +7,19 @@ export class ProductsService {
       id: 1,
       name: 'Cà phê sữa',
       price: 25000,
-      image: '/images/ca-phe-sua.jpg',
+      image: '/images/products/ca-phe-sua.svg',
     },
     {
       id: 2,
       name: 'Bạc xỉu',
       price: 30000,
-      image: '/images/bac-xiu.jpg',
+      image: '/images/products/bac-xiu.svg',
     },
     {
       id: 3,
       name: 'Trà đào cam sả',
       price: 35000,
-      image: '/images/tra-dao.jpg',
+      image: '/images/products/tra-dao-cam-sa.svg',
     },
   ];
 
