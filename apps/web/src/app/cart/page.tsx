@@ -1,17 +1,88 @@
 "use client";
 
 import Link from "next/link";
+ feature/a1-task-5
 import { SiteHeader } from "../../components/site-header";
 import { useCart } from "../../components/cart-provider";
 
+
+import { useState } from "react";
+import { SiteHeader } from "../../components/site-header";
+import { useCart } from "../../components/cart-provider";
+
+type CreatedOrder = {
+  orderCode: string;
+  status: "PENDING";
+  totalAmount: number;
+};
+
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/$/, "");
+ main
 const formatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
   currency: "VND",
   maximumFractionDigits: 0,
 });
 
+ feature/a1-task-5
 export default function CartPage() {
   const { items, hydrated, totalItems, totalPrice, increaseQuantity, decreaseQuantity, removeItem } = useCart();
+
+function isCreatedOrder(value: unknown): value is CreatedOrder {
+  if (typeof value !== "object" || value === null) return false;
+  const order = value as Record<string, unknown>;
+  return typeof order.orderCode === "string" &&
+    order.status === "PENDING" &&
+    Number.isSafeInteger(order.totalAmount) &&
+    Number(order.totalAmount) >= 0;
+}
+
+export default function CartPage() {
+  const { items, hydrated, totalItems, totalPrice, increaseQuantity, decreaseQuantity, removeItem, clearCart } = useCart();
+  const [submitting, setSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState("");
+  const [createdOrder, setCreatedOrder] = useState<CreatedOrder | null>(null);
+
+  async function createOrder() {
+    if (submitting || items.length === 0) return;
+    setSubmitting(true);
+    setOrderError("");
+
+    try {
+      const response = await fetch(`${API_URL}/orders`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((item) => ({
+            productId: Number(item.productId),
+            size: item.size,
+            toppings: item.toppings.map((topping) => topping.id),
+            quantity: item.quantity,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        const detail: unknown = await response.json().catch(() => null);
+        const message = typeof detail === "object" && detail !== null &&
+          "message" in detail && typeof detail.message === "string"
+          ? detail.message
+          : `API trả HTTP ${response.status}`;
+        throw new Error(message);
+      }
+
+      const payload: unknown = await response.json();
+      if (!isCreatedOrder(payload)) throw new Error("Phản hồi tạo đơn hàng không hợp lệ");
+
+      setCreatedOrder(payload);
+      clearCart();
+    } catch (error) {
+      setOrderError(error instanceof Error ? error.message : "Không thể tạo đơn hàng");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+ main
 
   return (
     <div className="site-shell">
@@ -25,6 +96,21 @@ export default function CartPage() {
           {hydrated && items.length > 0 && <span className="cart-item-count">{totalItems} sản phẩm</span>}
         </div>
 
+ feature/a1-task-5
+
+        {createdOrder && (
+          <section className="order-created-panel" role="status">
+            <span className="order-created-check" aria-hidden="true">✓</span>
+            <div>
+              <h2>Đơn hàng đã được tạo</h2>
+              <p>Mã đơn: <strong>{createdOrder.orderCode}</strong></p>
+              <p>Trạng thái: <strong>{createdOrder.status}</strong> · Tổng tiền {formatter.format(createdOrder.totalAmount)}</p>
+              <small>Đơn đang chờ xử lý. Đây chưa phải xác nhận thanh toán.</small>
+            </div>
+          </section>
+        )}
+
+ main
         {!hydrated ? (
           <div className="cart-loading" role="status">Đang tải giỏ hàng...</div>
         ) : items.length === 0 ? (
@@ -75,9 +161,16 @@ export default function CartPage() {
               <h2>Tổng giỏ hàng</h2>
               <p><span>Tạm tính ({totalItems} sản phẩm)</span><strong>{formatter.format(totalPrice)}</strong></p>
               <p className="cart-total"><span>Tổng cộng</span><strong>{formatter.format(totalPrice)}</strong></p>
+ feature/a1-task-5
               <button className="detail-action checkout-disabled" type="button" disabled title="Chức năng đặt hàng thuộc Task 6">
                 Thanh toán (chưa khả dụng)
               </button>
+
+              <button className="detail-action create-order-button" type="button" onClick={createOrder} disabled={submitting || !hydrated}>
+                {submitting ? "Đang tạo đơn..." : "Tạo đơn hàng"}
+              </button>
+              {orderError && <p className="order-error" role="alert">{orderError}</p>}
+ main
               <Link className="continue-shopping" href="/#menu">← Tiếp tục chọn món</Link>
             </aside>
           </div>

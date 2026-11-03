@@ -39,6 +39,10 @@ type CartContextValue = {
   increaseQuantity: (key: string) => void;
   decreaseQuantity: (key: string) => void;
   removeItem: (key: string) => void;
+ feature/a1-task-5
+
+  clearCart: () => void;
+ main
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -186,6 +190,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     updateItems((current) => current.filter((item) => item.key !== key));
   }, [updateItems]);
 
+ feature/a1-task-5
+
+  const clearCart = useCallback(() => {
+    updateItems(() => []);
+  }, [updateItems]);
+
+ main
   const dismissAddedItem = useCallback(() => setRecentlyAdded(null), []);
 
   const value = useMemo<CartContextValue>(() => ({
@@ -199,7 +210,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     increaseQuantity,
     decreaseQuantity,
     removeItem,
+ feature/a1-task-5
   }), [items, hydrated, recentlyAdded, addItem, dismissAddedItem, increaseQuantity, decreaseQuantity, removeItem]);
+
+    clearCart,
+  }), [items, hydrated, recentlyAdded, addItem, dismissAddedItem, increaseQuantity, decreaseQuantity, removeItem, clearCart]);
+ main
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
