@@ -60,6 +60,18 @@ Không giả định Next.js bắt buộc là proxy cho mọi API request; hai �
 - **Logging:** NestJS ghi structured logs ra stdout/stderr; dashboard platform thu nhận và hiển thị; không log token, mật khẩu, credentials hoặc raw secrets.
 - **CI/CD:** Dự kiến checkout → install → lint → unit/integration test → build → Docker image tagged SHA → push GHCR → deploy → migration an toàn → health/smoke test; dừng và rollback khi lỗi theo Task 5.
 
+### Chạy PostgreSQL local
+
+Compose chỉ khởi chạy PostgreSQL, chưa khởi chạy API hoặc web. Tạo `.env` từ `.env.example`, đặt `DB_PASSWORD` thành mật khẩu local, rồi chạy:
+
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+docker compose up -d db
+docker compose ps
+```
+
+`docker compose down` dừng container nhưng giữ volume `brewlite_pgdata`. Không dùng `docker compose down -v` nếu cần giữ dữ liệu local.
+
 ## 5. Traceability: deployment → architecture → code/config
 
 | Deployment element | Task 3.1 component | Source/config target | Trạng thái kiểm chứng |
@@ -68,7 +80,7 @@ Không giả định Next.js bắt buộc là proxy cho mọi API request; hai �
 | NestJS API | Modular Monolith API/domain | `apps/api` | Thư mục trong cấu trúc repository; module/source chưa xác minh |
 | Mock Payment Adapter | ADR-004/Payment infrastructure | dự kiến `apps/api/src/payments/` | Thiết kế, chưa xác minh hiện thực |
 | PostgreSQL | Data access, ADR-003 | `docker-compose.yml`, migration dự kiến trong `apps/api` | Cần kiểm tra code, managed DB chưa deploy |
-| Local Compose | Local testing | `docker-compose.yml` | Có tên file trong cấu trúc repo; nội dung/chạy thành công chưa xác minh |
+| Local Compose | Local testing | `docker-compose.yml` | Định nghĩa PostgreSQL local; cần xác minh chạy thành công trên máy |
 | CI runner | CI/CD design | `.github/workflows/` | Có thư mục; pipeline thành công chưa xác minh |
 | GHCR image | Container artifact | Dockerfile API, GitHub Actions workflow | Chưa triển khai/cần tạo ở Task 4–5 |
 | Railway services | Deployment runtime | Platform dashboard/settings, deployment config | Chưa chốt/chưa triển khai |

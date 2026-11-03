@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+ feature/a1-task-5
+import { SiteHeader } from "../../components/site-header";
+import { useCart } from "../../components/cart-provider";
+
+
 import { useState } from "react";
 import { SiteHeader } from "../../components/site-header";
 import { useCart } from "../../components/cart-provider";
@@ -12,11 +17,16 @@ type CreatedOrder = {
 };
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/$/, "");
+ main
 const formatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
   currency: "VND",
   maximumFractionDigits: 0,
 });
+
+ feature/a1-task-5
+export default function CartPage() {
+  const { items, hydrated, totalItems, totalPrice, increaseQuantity, decreaseQuantity, removeItem } = useCart();
 
 function isCreatedOrder(value: unknown): value is CreatedOrder {
   if (typeof value !== "object" || value === null) return false;
@@ -72,6 +82,7 @@ export default function CartPage() {
       setSubmitting(false);
     }
   }
+ main
 
   return (
     <div className="site-shell">
@@ -85,6 +96,8 @@ export default function CartPage() {
           {hydrated && items.length > 0 && <span className="cart-item-count">{totalItems} sản phẩm</span>}
         </div>
 
+ feature/a1-task-5
+
         {createdOrder && (
           <section className="order-created-panel" role="status">
             <span className="order-created-check" aria-hidden="true">✓</span>
@@ -97,6 +110,7 @@ export default function CartPage() {
           </section>
         )}
 
+ main
         {!hydrated ? (
           <div className="cart-loading" role="status">Đang tải giỏ hàng...</div>
         ) : items.length === 0 ? (
@@ -147,10 +161,16 @@ export default function CartPage() {
               <h2>Tổng giỏ hàng</h2>
               <p><span>Tạm tính ({totalItems} sản phẩm)</span><strong>{formatter.format(totalPrice)}</strong></p>
               <p className="cart-total"><span>Tổng cộng</span><strong>{formatter.format(totalPrice)}</strong></p>
+ feature/a1-task-5
+              <button className="detail-action checkout-disabled" type="button" disabled title="Chức năng đặt hàng thuộc Task 6">
+                Thanh toán (chưa khả dụng)
+              </button>
+
               <button className="detail-action create-order-button" type="button" onClick={createOrder} disabled={submitting || !hydrated}>
                 {submitting ? "Đang tạo đơn..." : "Tạo đơn hàng"}
               </button>
               {orderError && <p className="order-error" role="alert">{orderError}</p>}
+ main
               <Link className="continue-shopping" href="/#menu">← Tiếp tục chọn món</Link>
             </aside>
           </div>
